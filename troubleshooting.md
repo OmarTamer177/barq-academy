@@ -48,6 +48,6 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: 
     docker exec app-01 python -c "import psycopg; psycopg.connect('postgresql://barq_app:BarqLabOnly_7qN2vK8c@postgres:5432/barq_tasks')" && echo OK  ->  OK
     docker exec app-01 python -c "import redis; print(redis.Redis.from_url('redis://redis:6379/0').ping())"  ->  True
-- Related commit: (to be filled: commit #1)
+- Related commit: 4e344a475352a787db4c0ee890c36b511eb2dce7
 - Remaining uncertainty: None
 
