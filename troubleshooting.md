@@ -110,5 +110,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   {"instance_id":"app-01","service":"barq-api","status":"ok","version":"2.0.0"}
   {"instance_id":"app-02","service":"barq-api","status":"ok","version":"2.0.0"}
   (Responses now properly alternate between app-01 and app-02)
-- Related commit: pending
+- Related commit: e90f7b8b103c3dd731272b400f043b278f0d2dd4
 - Remaining uncertainty: Next is the postgres data volume persistence issue.
