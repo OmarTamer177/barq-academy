@@ -129,3 +129,17 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   (Record #3 survived recreation)
 - Related commit: 852cbce95ba7b53db171058a82e64be00cc5ba37
 - Remaining uncertainty: none
+
+## Entry 8 / 2026-09-13 / 08:22 UTC
+- Symptom: The Flask app containers (app-01, app-02) are running as the root user, which violates container security best practices.
+- Hypothesis: The Dockerfile overrides the unprivileged user it creates.
+- Command or test: docker exec app-01 whoami
+- Actual output: root
+- Failed attempt and what changed your thinking: none
+- Root cause: The Dockerfile creates an unprivileged 'app' user but explicitly sets USER root right before the CMD instruction.
+- Fix: Changed USER root to USER app in the Dockerfile.
+- Retest evidence:
+  docker exec app-01 whoami
+  app
+- Related commit: pending
+- Remaining uncertainty: none
