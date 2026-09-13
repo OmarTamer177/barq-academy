@@ -29,5 +29,5 @@ Write None if no AI was used. Otherwise record each use:
 - Files or decisions affected: backup.sh, restore.sh
 - What you changed or rejected: I wrote the initial drafts for the bash scripts and had the AI verify the pg_dump and psql syntax. The AI suggested adding the --clean and --if-exists flags for safer restoration, which I reviewed and accepted.
 - How you independently verified it: Executed both scripts locally against the running postgres container and verified the SQL dump file was generated correctly and successfully restored without errors.
-- Related commit: pending
+- Related commit: b1ba019007ea83e9a9a76517a38a58ca088a5671
 You may use AI and external resources. You must understand and demonstrate the work.
