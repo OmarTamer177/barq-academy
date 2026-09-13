@@ -65,5 +65,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence:
   curl -I http://localhost:8080/
   HTTP/1.1 502 Bad Gateway (Connection refused is fixed, NGINX is reached)
-- Related commit: pending
+- Related commit: 6d40f52e4006e3a7c82079d1f2613d27c8d47ea6
 - Remaining uncertainty: app-01 still has the wrong upstream port, so some requests might still fail with 502, but NGINX itself should now be reachable.
