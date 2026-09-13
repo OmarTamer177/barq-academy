@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Start Docker Compose Stack
+      run: docker compose up -d --build
+
+    - name: Wait for Services to Initialize
+      run: sleep 15
+
+    - name: Run Validation Tests
+      run: python3 validate.py
+
+    - name: Run Resilience Tests
+      run: python3 failure_test.py
+
+    - name: Tear Down Stack
+      if: always()
+      run: docker compose down -v
