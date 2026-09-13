@@ -15,7 +15,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Setup Environment Variables
-      run: mkdir -p config && cp .env.example config/app.env
+      run: |
+        mkdir -p config
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > config/app.env
+        echo "REDIS_URL=redis://redis:6379/0" >> config/app.env
 
     - name: Start Docker Compose Stack
       run: docker compose up -d --build
