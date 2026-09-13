@@ -36,9 +36,10 @@ logging/monitoring and availability. Separate completed work from planned improv
 - Production follow-up: Enforce strict micro-segmentation using network policies so the proxy tier can never route to the data tier.
 - How to verify: Run docker inspect nginx and verify only the Frontend network is attached.
 
-### 4. Persistence/Backup (Partial)
-- Risk and evidence: The postgres service mounted its primary data directory (/var/lib/postgresql/data) to a tmpfs (RAM disk), meaning data was wiped on every restart.
-- Impact: Complete data loss for PostgreSQL upon any container restart or crash.
-- Implemented fix / commit: Removed the tmpfs mount and correctly mapped the persistent Docker volume to the data directory. (Commit: 852cbce95ba7b53db171058a82e64be00cc5ba37)
-- Production follow-up: We still need to configure backups for Postgres, and we still need to fix Redis persistence (currently disabled). In production, use managed databases (RDS/ElastiCache) with automated snapshots.
-- How to verify: Create a record via the API, recreate the containers, and query the API to ensure the record survived.
+### 4. Persistence/Backup
+- Risk and evidence: Both database services lacked persistent storage. Postgres mounted its primary data directory (/var/lib/postgresql/data) to a tmpfs (RAM disk), meaning data was wiped on every restart. Redis was explicitly disabling persistence via --save "" and --appendonly "no".
+- Impact: Complete data loss for PostgreSQL and Redis upon any container restart or crash.
+- Implemented fix / commit: For Postgres: removed the tmpfs mount and correctly mapped the persistent Docker volume (Commit: 852cbce95ba7b53db171058a82e64be00cc5ba37). For Redis: changed the command to --appendonly "yes" and mapped a 
+edis-data volume.
+- Production follow-up: In production, configure automated backups for Postgres. Use managed databases (RDS/ElastiCache) with automated snapshots.
+- How to verify: Create a record via the API and hit the /counter endpoint. Recreate the containers, query the API, and verify the record and counter survived.
