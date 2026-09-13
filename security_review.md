@@ -43,3 +43,35 @@ logging/monitoring and availability. Separate completed work from planned improv
 edis-data volume.
 - Production follow-up: In production, configure automated backups for Postgres. Use managed databases (RDS/ElastiCache) with automated snapshots.
 - How to verify: Create a record via the API and hit the /counter endpoint. Recreate the containers, query the API, and verify the record and counter survived.
+
+### 5. Secrets
+- Risk and evidence: The `config/app.env` file containing real PostgreSQL and Redis passwords was tracked in the Git repository.
+- Impact: Anyone with read access to the repository could extract production credentials, leading to full data compromise.
+- Implemented fix / commit: Removed the file from Git tracking (`git rm --cached`), added it to `.gitignore`, and provided a sanitized `.env.example`.
+- Production follow-up: All leaked passwords must be rotated immediately. In production, migrate to a dedicated secret manager (e.g., AWS Secrets Manager, HashiCorp Vault) rather than env files.
+- How to verify: Run `git ls-files | grep app.env` to ensure it returns empty, and inspect `.gitignore`.
+
+Note: The synthetic lab password is visible in early commit history despite being removed from current tracking; git rm --cached doesn't purge history. Since the task requires preserving baseline commit history, it wasn't scrubbed. In a real environment this credential would be rotated immediately, but here it's documented as an accepted, low-stakes exposure since it's synthetic lab data rather than a real secret.
+
+### 6. Availability and Resource Limits
+- Risk and evidence: `docker-compose.yml` had no resource limits defined, and the app containers were explicitly set to `restart: "no"`.
+- Impact: A single runaway container (e.g., memory leak) could consume all host RAM, crashing the entire server. App crashes would cause permanent downtime until manually restarted.
+- Implemented fix / commit: Added `restart: unless-stopped` and `deploy.resources.limits` (0.5 CPU, 512M memory) to all services.
+- Production follow-up: Deploy across multiple physical nodes/availability zones using Kubernetes with Horizontal Pod Autoscaling (HPA).
+- How to verify: Run `docker stats` and verify the memory limits column shows 512MiB.
+
+## Planned/Future Improvements
+
+### 7. Logging and Monitoring
+- Risk and evidence: Application and error logs are currently only stored locally on the Docker host via standard output.
+- Impact: If the host machine dies, all forensic log data is permanently lost, severely hindering incident response.
+- Implemented fix / commit: None (Planned) - Configure Docker's logging driver (`syslog` or `fluentd`) in `docker-compose.yml` to forward logs to a centralized cluster (ELK stack or Datadog).
+- Production follow-up: Set up alerting for 5xx errors and latency spikes above the P95 baseline.
+- How to verify: Check the `logging:` section of future compose files and verify logs appear in the centralized dashboard.
+
+### 8. Image Selection
+- Risk and evidence: We are using `python:3.12-slim-bookworm` and `nginx:1.28-alpine`. While SHA-pinned, they still contain a full package manager and shell.
+- Impact: If an attacker achieves Remote Code Execution (RCE), they have the tools (like `apk` or `apt`) to download additional malware.
+- Implemented fix / commit: None (Planned) - Migrate all application images to "Distroless" base images or `scratch`, which contain only the application binary and its immediate dependencies.
+- Production follow-up: Enforce strict automated vulnerability scanning (e.g., Trivy, Clair) in the CI pipeline before pushing to the registry.
+- How to verify: Run `docker exec app-01 sh` on a distroless container; it should fail because no shell exists.

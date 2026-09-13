@@ -159,3 +159,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   (No host IP bindings like 127.0.0.1 are shown anymore)
 - Related commit: 42064a3c173647dbaf9c8a5035b948bbbb2d5b21
 - Remaining uncertainty: none
+
+## Entry 10 / 2026-09-13 / 13:58 UTC
+- Symptom: Security review noted that secrets should not be baked into the image, but the Dockerfile had a `COPY config/app.env /srv/app.env` line which contradicts this.
+- Hypothesis: The line is dead code since the application actually reads configuration from environment variables injected by Docker Compose, not from a file path inside the container.
+- Command or test: `docker save barq-check | tar -xO 2>/dev/null | grep -a "BarqLabOnly" || echo "not found in image"`
+- Actual output: `not` (which corresponds to not found in image)
+- Failed attempt and what changed your thinking: None.
+- Root cause: The `Dockerfile` unnecessarily copied the `.env` file into the image layer, baking in sensitive credentials.
+- Fix: Deleted `COPY config/app.env /srv/app.env` from `Dockerfile`.
+- Retest evidence: Ran `docker compose up -d --build` and verified endpoints (`/`, `/ready`, `/records`) still functioned identically (returning 200 OK and valid JSON).
+- Related commit: pending
+- Remaining uncertainty: None.
