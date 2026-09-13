@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 import json
 
-BASE_URL = "http://127.0.0.1:8080/ready"
+BASE_URL = "http://127.0.0.1:8090/ready"
 
 def get_status():
     try:
