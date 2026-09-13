@@ -17,4 +17,11 @@ Write None if no AI was used. Otherwise record each use:
 - How you independently verified it: docker exec/curl tests against the running containers, checked against actual container logs (postgres/redis listening ports, etc.)
 - Related commit: 4e344a475352a787db4c0ee890c36b511eb2dce7
 
+- Tool/model: Gemini 3.1 pro
+- Purpose: review and verify validation and failure tests
+- Files or decisions affected: validate.py, failure_test.py
+- What you changed or rejected: I wrote the initial drafts for both test scripts and had the AI verify and fix the HTTP assertions. The AI caught a timeout condition during the failure simulation, which I then manually reviewed and verified.
+- How you independently verified it: Executed both python3 validate.py and python3 failure_test.py locally against the running docker containers and confirmed they exit 0 on success and correctly simulate resilience behavior.
+- Related commit: pending
+
 You may use AI and external resources. You must understand and demonstrate the work.
