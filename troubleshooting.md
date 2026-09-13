@@ -53,3 +53,17 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Related commit: 4e344a475352a787db4c0ee890c36b511eb2dce7
 - Remaining uncertainty: None
 
+
+## Entry 3 / 2026-09-13 / 07:38 UTC
+- Symptom: curl http://localhost:8080/ready returns empty response from host.
+- Hypothesis: NGINX is not receiving traffic from the host because docker-compose maps the host port to container port 81, but nginx.conf listens on port 80.
+- Command or test: grep -E "listen|81" docker-compose.yml nginx/nginx.conf
+- Actual output: docker-compose.yml has port 81, nginx.conf has listen 80
+- Failed attempt and what changed your thinking: none
+- Root cause: Port mismatch between docker-compose port mapping and NGINX config.
+- Fix: Changed container port mapping in docker-compose.yml from 81 to 80.
+- Retest evidence:
+  curl -I http://localhost:8080/
+  HTTP/1.1 502 Bad Gateway (Connection refused is fixed, NGINX is reached)
+- Related commit: pending
+- Remaining uncertainty: app-01 still has the wrong upstream port, so some requests might still fail with 502, but NGINX itself should now be reachable.
