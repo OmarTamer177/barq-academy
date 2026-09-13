@@ -127,5 +127,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   curl -s http://localhost:8080/records
   {"instance_id":"app-01","records":[{"id":1,"title":"Review service readiness"},{"id":2,"title":"Document the operating procedure"},{"id":3,"title":"Persistence proof"}],"service":"barq-api","version":"2.0.0"}
   (Record #3 survived recreation)
-- Related commit: pending
+- Related commit: 852cbce95ba7b53db171058a82e64be00cc5ba37
 - Remaining uncertainty: none
