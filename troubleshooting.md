@@ -141,5 +141,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence:
   docker exec app-01 whoami
   app
-- Related commit: pending
+- Related commit: 948886c30f543c944671f10890bcc93bba78622d
 - Remaining uncertainty: none
