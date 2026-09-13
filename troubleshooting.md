@@ -31,7 +31,7 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence:
   docker exec nginx wget -qO- --timeout=2 http://app-02:8080/
   {"instance_id":"app-01","message":"Welcome to BARQ Systems","service":"barq-api","version":"2.0.0"}
-- Related commit: pending
+- Related commit: b54b59774649343d3881ee58ccbe44d9a440d2dd
 - Remaining uncertainty: whether app-01:8081 refusal is due to APP_HOST alone or also the wrong port in nginx upstream config. curl http://localhost:8080/ready still fails because NGINX listen/port mapping and app-01 port mismatch in upstream config are not yet fixed.
 
 ## Entry 2 / 2026-09-07 / 13:35 UTC
