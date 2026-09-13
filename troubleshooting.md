@@ -143,3 +143,20 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   app
 - Related commit: 948886c30f543c944671f10890bcc93bba78622d
 - Remaining uncertainty: none
+
+## Entry 9 / 2026-09-13 / 08:27 UTC
+- Symptom: Postgres and Redis ports are accessible from the host, which violates the security requirements in the assessment.
+- Hypothesis: The ports are explicitly published in docker-compose.yml.
+- Command or test: docker ps --format "{{.Names}}: {{.Ports}}" | grep -E "postgres|redis"
+- Actual output: Postgres and Redis had ports mapped to 127.0.0.1:15432 and 127.0.0.1:16379 respectively.
+- Failed attempt and what changed your thinking: none
+- Root cause: The docker-compose.yml file contained ports: directives for both postgres and redis.
+- Fix: Removed the ports mapping blocks from postgres and redis in docker-compose.yml so they are only accessible on the internal docker network.
+- Retest evidence:
+  docker ps --format "{{.Names}}: {{.Ports}}" | grep -E "postgres|redis"
+  postgres: 5432/tcp
+  
+edis: 6379/tcp
+  (No host IP bindings like 127.0.0.1 are shown anymore)
+- Related commit: pending
+- Remaining uncertainty: none
