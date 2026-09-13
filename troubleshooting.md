@@ -79,5 +79,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence:
   curl -s http://localhost:8080/
   {"instance_id":"app-01","message":"Welcome to BARQ Systems","service":"barq-api","version":"2.0.0"}
-- Related commit: pending
+- Related commit: ae68dd8f5fa1b5b3c531ac7fe6b682b939998c2a
 - Remaining uncertainty: The healthcheck path and instance ID issues still remain, but basic routing to both apps should now work without 502s.
