@@ -1,4 +1,4 @@
-<img src="assets/barq-logo.svg" alt="BARQ Systems" width="180">
+﻿<img src="assets/barq-logo.svg" alt="BARQ Systems" width="180">
 
 # DevOps Internship Task - Starter v2
 
@@ -6,7 +6,7 @@ This repository contains the completed, secured, and automated deployment enviro
 
 ## Project Setup and Operations
 
-The environment runs two Flask applications behind an NGINX reverse proxy, connected to isolated PostgreSQL and Redis databases.
+The environment runs three Flask applications behind an NGINX reverse proxy, connected to isolated PostgreSQL and Redis databases.
 
 ### 1. Build and Start the Environment
 ```bash
@@ -65,7 +65,7 @@ Analyzing the historical logs via custom Python/Bash scripts revealed two things
 equest_id across the NGINX access logs and the application logs, grouping the data logically rather than blindly counting raw lines.
 
 ### 3. How do requests flow? Why these ports, networks and readiness checks?
-Requests flow from the external client hitting host port 8080, directly to the NGINX container on the Frontend network. NGINX acts as a reverse proxy, distributing requests round-robin to app-01 and app-02 on internal port 8080. The Flask apps, bridging both networks, query PostgreSQL (5432) and Redis (6379) exclusively on the Backend network. The /ready endpoint explicitly pings both databases because a 200 OK from /health is meaningless if the underlying data tier is offline. 
+Requests flow from the external client hitting host port 8090, directly to the NGINX container on the Frontend network. NGINX acts as a reverse proxy, distributing requests round-robin to app-01, app-02, and app-03 on internal port 8080. The Flask apps, bridging both networks, query PostgreSQL (5432) and Redis (6379) exclusively on the Backend network. The /ready endpoint explicitly pings both databases because a 200 OK from /health is meaningless if the underlying data tier is offline. 
 
 ### 4. Why these timeouts, retries, restart settings and resource limits?
 We configured restart: unless-stopped on all services to guarantee resilience against temporary crashes or host reboots. We enforced hard memory limits (512M) per application container to prevent an application memory leak from causing an Out-Of-Memory (OOM) cascade failure that could crash the host machine. We adjusted the startup wait timeouts (sleep 30 in CI, 20s in scripts) specifically because database boot sequences (especially PostgreSQL doing an initial initdb on slower CI runners) require grace periods before they can accept connections.
