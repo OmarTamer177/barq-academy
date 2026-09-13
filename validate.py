@@ -3,6 +3,7 @@ import sys
 import json
 import urllib.request
 import urllib.error
+import socket
 
 BASE_URL = "http://127.0.0.1:8080"
 passed = True
@@ -33,6 +34,21 @@ def check(name, url, method="GET", data=None, expected_status=200):
         print(f"FAIL: Exception {e}")
         passed = False
         return None
+
+def check_port_closed(port, name):
+    global passed
+    print(f"Checking {name} Isolation (Port {port})... ", end="")
+    try:
+        # If we can connect to the host port, it is exposed!
+        with socket.create_connection(("127.0.0.1", port), timeout=1):
+            print(f"FAIL: Port {port} is accessible from the host!")
+            passed = False
+    except (ConnectionRefusedError, socket.timeout):
+        print("PASS (Connection Refused/Timeout)")
+
+# 0. Check network isolation
+check_port_closed(5432, "PostgreSQL")
+check_port_closed(6379, "Redis")
 
 # 1. Check /health
 check("Health Endpoint", "/health")
