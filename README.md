@@ -2,96 +2,79 @@
 
 # DevOps Internship Task - Starter v2
 
-**Due date:** ____________________
+This repository contains the completed, secured, and automated deployment environment for the Barq Academy DevOps Internship assessment. The initial broken starter architecture has been fully audited, fixed, and brought up to production readiness.
 
-**Time window:** 4 calendar days from the invitation email date/time.
+## Project Setup and Operations
 
-Read [the task](assessment/TASK.md), then [the API contract](assessment/APPLICATION.md).
-Everyone receives this same release. The environment is intentionally broken.
-Hidden issue types and count are not disclosed. Investigate this project; do not replace it.
+The environment runs two Flask applications behind an NGINX reverse proxy, connected to isolated PostgreSQL and Redis databases.
 
-## Included
-
-- Flask API, PostgreSQL, Redis, Docker and NGINX starter files.
-- Three historical logs, a question template and documentation templates.
-- App-only tests and a recorded challenge script.
-- Unimplemented validation, failure-test and backup/restore placeholders.
-
-Use synthetic lab accounts/data only. Supplied values are for this disposable exercise,
-never for real services. Keep the lab on your local machine; do not expose it publicly.
-
-## Before you start
-
-- Linux or WSL2, Python 3.12, Git and Docker with Compose.
-- Docker Desktop must use Linux containers. Run shell scripts in Linux/WSL.
-- Suggested capacity: 2 CPU cores, 4 GB free RAM and 3 GB free disk, plus Docker overhead.
-- Internet for first downloads and GitHub. No cloud account or paid registry required.
-- Use a machine where container names app-01, app-02, nginx, postgres and redis are unused.
-  Do not delete someone else's containers to free those names.
-- Intended public port: 8080 before the video, 8090 after the live change.
-  If either is occupied, ask the organizer for a documented workstation exception.
-
-## Start
-
-Clone the supplied Git bundle/repository. Keep both release commits and the v2 baseline tag.
-Set your own Git name/email before making changes.
-
-From the repository root:
-
+### 1. Build and Start the Environment
 ```bash
-git status
-git log -2 --oneline
-cp .env.example .env
-docker version
-docker compose version
-docker compose -p barq-assessment up --build -d
-docker compose -p barq-assessment ps -a
-docker compose -p barq-assessment logs --no-color
+# Clone the repository
+git clone <your-repo-url>
+cd barq-academy
+
+# Initialize the configuration files
+mkdir -p config
+cp .env.example config/app.env
+cp .env.example .env # (Provides local variables for docker-compose)
+
+# Start the environment in detached mode
+docker compose up -d --build
 ```
 
-The initial environment is not expected to pass. Record what actually happens.
-The intended URL is http://127.0.0.1:8080; do not assume the starter configuration is correct.
-
-App-only checks use fake dependencies, not real SQL/Redis or Docker networking:
-
+### 2. Run Automated Validation
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m unittest discover -s tests -v
+# Test network isolation, endpoint liveness, and database/cache functionality
+python3 validate.py
 ```
 
-## Your work
-
-- Complete [assessment/TASK.md](assessment/TASK.md).
-- Implement validate.py, failure_test.py, backup.sh and restore.sh, or documented equivalents.
-  Placeholders deliberately exit 2; they are unfinished deliverables, not validation evidence.
-- Create .github/workflows/ci.yml yourself.
-- Complete the root report templates and docs/EVIDENCE_INDEX.md.
-- Add architecture.png or architecture.pdf.
-- Replace this README with copyable setup/build/run/test/failure/backup/restore/cleanup commands.
-- Commit as you work. Do not commit real secrets, backups, virtual environments or challenge state.
-
-## Recorded challenge
-
-Use the supplied video_challenge.sh unchanged. Read its code if needed; do not run it early.
-After repairing the environment, run it once, for the first time in the video working copy,
-during the continuous 12-18 minute recording. The script requires healthy services, both
-initial instances and the target network layout. Preflight failures make no runtime changes.
-
+### 3. Run Resilience / Failure Tests
 ```bash
-./video_challenge.sh
+# Test the system's ability to handle and recover from database outages
+python3 failure_test.py
 ```
 
-If you deliberately changed the project name, pass --project YOUR_PROJECT.
-An organizer-approved alternate local URL can be passed with --url http://127.0.0.1:PORT.
-The script touches only matching Compose-owned lab containers/networks.
-Keep the receipt in .assessment/challenge.json for the evidence index. Do not delete the
-one-run marker to retry. A local marker is not tamper-proof; ownership is judged from evidence.
-Do not use docker compose down to reset the runtime challenge.
+### 4. Backup and Restore
+```bash
+# Create a full dump of the PostgreSQL database
+./backup.sh
 
-## Stop safely
+# Restore the database from the generated dump file
+./restore.sh
+```       
 
-Outside the recorded challenge, docker compose -p barq-assessment down stops this lab.
-Do not use --volumes during persistence tests. Avoid global Docker prune/cleanup commands.
-Back up anything you need before removing containers; investigate whether data actually persists.
+### 5. Stop and Cleanup
+```bash
+# Safely pause the environment without losing database persistence
+docker compose stop
+
+# Tear down the environment and wipe all persistent volumes
+docker compose down -v
+```
+
+---
+
+## Architectural Reflection Questions
+
+### 1. What failed first? What proved the cause? Which failed attempt taught you something?
+The very first failure was that NGINX couldn't route traffic to the Flask applications (returning empty responses or Connection Refused). This was proven by running docker exec nginx wget -qO- --timeout=2 http://app-02:8080/ which immediately returned "Connection refused." The root cause was that APP_HOST was bound to 127.0.0.1 inside the containers, blocking external traffic. Later, we also discovered NGINX had *too much* access (it was connected to both the frontend and backend networks); separating it from the backend network taught me the importance of strict micro-segmentation, ensuring the proxy tier cannot bypass the app tier to reach the data layer directly.
+
+### 2. What patterns did the logs reveal? How did you avoid double-counting requests?
+Analyzing the historical logs via custom Python/Bash scripts revealed two things: an off-by-one math error in the original P95 latency calculation, and a distinct outage window where app-02 was completely unreachable (throwing 502 Bad Gateway and "Connection refused" errors) between 11:05 and 11:09, while app-01 remained entirely healthy. To avoid double-counting requests, we uniquely identified them by cross-referencing the 
+equest_id across the NGINX access logs and the application logs, grouping the data logically rather than blindly counting raw lines.
+
+### 3. How do requests flow? Why these ports, networks and readiness checks?
+Requests flow from the external client hitting host port 8080, directly to the NGINX container on the Frontend network. NGINX acts as a reverse proxy, distributing requests round-robin to app-01 and app-02 on internal port 8080. The Flask apps, bridging both networks, query PostgreSQL (5432) and Redis (6379) exclusively on the Backend network. The /ready endpoint explicitly pings both databases because a 200 OK from /health is meaningless if the underlying data tier is offline. 
+
+### 4. Why these timeouts, retries, restart settings and resource limits?
+We configured restart: unless-stopped on all services to guarantee resilience against temporary crashes or host reboots. We enforced hard memory limits (512M) per application container to prevent an application memory leak from causing an Out-Of-Memory (OOM) cascade failure that could crash the host machine. We adjusted the startup wait timeouts (sleep 30 in CI, 20s in scripts) specifically because database boot sequences (especially PostgreSQL doing an initial initdb on slower CI runners) require grace periods before they can accept connections.
+
+### 5. When should validation fail? What does green CI prove, or not prove?
+Validation should fail immediately if any required HTTP endpoint returns a non-200 status code (or returns a 500 range during a simulated recovery phase), OR if the script successfully connects to port 5432 or 6379 from the host machine (which indicates a critical network isolation failure). A green CI pipeline proves that the code is syntactically correct, the containers build successfully, and the functional integration works locally. It **does not** prove that the system is secure against penetration, nor does it prove that the application will scale or remain stable under production-level traffic loads.
+
+### 6. Which single points of failure remain? How would you fix them in production?
+Currently, NGINX, PostgreSQL, and Redis are all single instances. If any of those specific containers die permanently, the entire system goes down or loses functionality. In a true production environment, we would migrate to managed, highly-available databases (such as AWS RDS for PostgreSQL and ElastiCache for Redis) spanning multiple Availability Zones. We would also place a cloud Load Balancer in front of multiple NGINX ingress nodes running in a Kubernetes cluster to eliminate the single proxy bottleneck.
+
+### 7. What would you improve? How did you verify AI-assisted work?
+I would improve the security posture by migrating all images from the slim-bookworm or alpine bases to distroless or scratch images, which remove the shell and package managers entirely, drastically reducing the attack surface for Remote Code Execution. I would also implement automated CI/CD container scanning (e.g., Trivy). AI-assisted work was strictly verified by manually running all generated commands locally in WSL, executing and testing the outputs of all scripts, and explicitly auditing the proposed Bash/Python syntax for flaws or hallucinated flags before accepting the commits into the repository.
