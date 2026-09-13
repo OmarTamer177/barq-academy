@@ -96,3 +96,19 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   app-02: Up 15 seconds (healthy)
 - Related commit: 2c5aae070a57b7c73da4277ef5dcc300fabf8dee
 - Remaining uncertainty: Duplicate instance_id issue still needs to be resolved.
+
+## Entry 6 / 2026-09-13 / 08:09 UTC
+- Symptom: Hitting the API through NGINX always returns "instance_id": "app-01", even though NGINX is round-robining between two containers.
+- Hypothesis: The INSTANCE_ID environment variable for app-02 was accidentally copied from app-01.
+- Command or test: grep -A 5 "app-02:" docker-compose.yml
+- Actual output: app-02 sets INSTANCE_ID: "app-01"
+- Failed attempt and what changed your thinking: none
+- Root cause: Copy-paste error in the environment variables of app-02.
+- Fix: Changed INSTANCE_ID: "app-01" to INSTANCE_ID: "app-02" for the app-02 service in docker-compose.yml.
+- Retest evidence:
+  curl -s http://localhost:8080/instance (multiple times)
+  {"instance_id":"app-01","service":"barq-api","status":"ok","version":"2.0.0"}
+  {"instance_id":"app-02","service":"barq-api","status":"ok","version":"2.0.0"}
+  (Responses now properly alternate between app-01 and app-02)
+- Related commit: pending
+- Remaining uncertainty: Next is the postgres data volume persistence issue.
