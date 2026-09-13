@@ -22,6 +22,6 @@ Write None if no AI was used. Otherwise record each use:
 - Files or decisions affected: validate.py, failure_test.py
 - What you changed or rejected: I wrote the initial drafts for both test scripts and had the AI verify and fix the HTTP assertions. The AI caught a timeout condition during the failure simulation, which I then manually reviewed and verified.
 - How you independently verified it: Executed both python3 validate.py and python3 failure_test.py locally against the running docker containers and confirmed they exit 0 on success and correctly simulate resilience behavior.
-- Related commit: pending
+- Related commit: 6fb857b3b14d02e8d175195d9e5799dd1ef54e8b
 
 You may use AI and external resources. You must understand and demonstrate the work.
