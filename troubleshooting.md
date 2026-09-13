@@ -26,11 +26,13 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   app-02:8080 -> "Connection refused" (correct port per nginx.conf, so bind address is the suspect, not port)
   curl :8080/ready -> empty, no response
 - Failed attempt and what changed your thinking: none yet at this point, first test
-- Root cause: not yet isolated, multiple compounding issues suspected (APP_HOST, nginx port mismatch, upstream port mismatch, wrong DB/redis ports and password). Being isolated one at a time below.
-- Fix: pending
-- Retest evidence: pending
+- Root cause: APP_HOST was set to "127.0.0.1" in the x-app anchor in docker-compose.yml, causing the Flask app to bind only to the local loopback interface inside its container, making it unreachable from the NGINX container.
+- Fix: Changed APP_HOST to "0.0.0.0" in the shared x-app anchor in docker-compose.yml.
+- Retest evidence:
+  docker exec nginx wget -qO- --timeout=2 http://app-02:8080/
+  {"instance_id":"app-01","message":"Welcome to BARQ Systems","service":"barq-api","version":"2.0.0"}
 - Related commit: pending
-- Remaining uncertainty: whether app-01:8081 refusal is due to APP_HOST alone or also the wrong port in nginx upstream config
+- Remaining uncertainty: whether app-01:8081 refusal is due to APP_HOST alone or also the wrong port in nginx upstream config. curl http://localhost:8080/ready still fails because NGINX listen/port mapping and app-01 port mismatch in upstream config are not yet fixed.
 
 ## Entry 2 / 2026-09-07 / 13:35 UTC
 - Symptom: config/app.env pointed at postgres:5433 and redis:6380; DATABASE_URL password ended in "d" while POSTGRES_PASSWORD in compose ended in "c"
