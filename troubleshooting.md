@@ -67,3 +67,17 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   HTTP/1.1 502 Bad Gateway (Connection refused is fixed, NGINX is reached)
 - Related commit: 6d40f52e4006e3a7c82079d1f2613d27c8d47ea6
 - Remaining uncertainty: app-01 still has the wrong upstream port, so some requests might still fail with 502, but NGINX itself should now be reachable.
+
+## Entry 4 / 2026-09-13 / 07:44 UTC
+- Symptom: curl http://localhost:8080/ returns 502 Bad Gateway consistently or intermittently.
+- Hypothesis: NGINX upstream configuration is attempting to route traffic to the wrong port for app-01.
+- Command or test: grep -A 3 "upstream application_pool" nginx/nginx.conf
+- Actual output: server app-01:8081 max_fails=0; (app-02 is correctly 8080)
+- Failed attempt and what changed your thinking: none
+- Root cause: Typo in nginx.conf upstream block where app-01 was pointing to port 8081 instead of 8080.
+- Fix: Changed server app-01:8081 to server app-01:8080 in nginx/nginx.conf.
+- Retest evidence:
+  curl -s http://localhost:8080/
+  {"instance_id":"app-01","message":"Welcome to BARQ Systems","service":"barq-api","version":"2.0.0"}
+- Related commit: pending
+- Remaining uncertainty: The healthcheck path and instance ID issues still remain, but basic routing to both apps should now work without 502s.
