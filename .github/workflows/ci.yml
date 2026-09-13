@@ -21,7 +21,7 @@ jobs:
       run: docker compose up -d --build
 
     - name: Wait for Services to Initialize
-      run: sleep 15
+      run: sleep 30
 
     - name: Run Validation Tests
       run: python3 validate.py

@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 import json
 
-BASE_URL = "http://localhost:8080/ready"
+BASE_URL = "http://127.0.0.1:8080/ready"
 
 def get_status():
     try:
@@ -55,8 +55,8 @@ else:
 # Step 4: Bring Postgres back up and verify recovery
 print("\n[4/4] Simulating Postgres recovery (docker start postgres)...")
 run_docker_cmd("docker start postgres")
-print("Waiting for Postgres to initialize (10 seconds)...")
-time.sleep(10)
+print("Waiting for Postgres to initialize (20 seconds)...")
+time.sleep(20)
 
 status, body = get_status()
 if status == 200:

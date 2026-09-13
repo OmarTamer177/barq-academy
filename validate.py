@@ -4,7 +4,7 @@ import json
 import urllib.request
 import urllib.error
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://127.0.0.1:8080"
 passed = True
 
 def check(name, url, method="GET", data=None, expected_status=200):
