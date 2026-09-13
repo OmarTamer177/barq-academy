@@ -111,4 +111,21 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   {"instance_id":"app-02","service":"barq-api","status":"ok","version":"2.0.0"}
   (Responses now properly alternate between app-01 and app-02)
 - Related commit: e90f7b8b103c3dd731272b400f043b278f0d2dd4
-- Remaining uncertainty: Next is the postgres data volume persistence issue.
+- Remaining uncertainty: none
+
+## Entry 7 / 2026-09-13 / 08:13 UTC
+- Symptom: PostgreSQL data does not persist across container restarts. Any data created in the API is lost when containers restart.
+- Hypothesis: The volume for Postgres data is misconfigured in docker-compose.yml.
+- Command or test: grep -A 5 "volumes:" docker-compose.yml under postgres block
+- Actual output: tmpfs: [/var/lib/postgresql/data] is set, and postgres-data volume is mounted to /var/lib/postgresql/backup
+- Failed attempt and what changed your thinking: none
+- Root cause: The Postgres data directory was mounted as a temporary RAM disk (tmpfs), and the persistent named volume was mounted to an unused backup directory.
+- Fix: Removed the tmpfs directive and corrected the named volume mount from /var/lib/postgresql/backup to /var/lib/postgresql/data in docker-compose.yml.
+- Retest evidence:
+  curl -s -H "Content-Type: application/json" -d '{"title":"Persistence proof"}' http://localhost:8080/records
+  docker compose up -d --force-recreate
+  curl -s http://localhost:8080/records
+  {"instance_id":"app-01","records":[{"id":1,"title":"Review service readiness"},{"id":2,"title":"Document the operating procedure"},{"id":3,"title":"Persistence proof"}],"service":"barq-api","version":"2.0.0"}
+  (Record #3 survived recreation)
+- Related commit: pending
+- Remaining uncertainty: none
