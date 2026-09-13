@@ -94,5 +94,5 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   docker ps --format "{{.Names}}: {{.Status}}" | grep app
   app-01: Up 15 seconds (healthy)
   app-02: Up 15 seconds (healthy)
-- Related commit: pending
+- Related commit: 2c5aae070a57b7c73da4277ef5dcc300fabf8dee
 - Remaining uncertainty: Duplicate instance_id issue still needs to be resolved.
