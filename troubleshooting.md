@@ -81,3 +81,18 @@ Keep chronological entries. Copy this block for each meaningful investigation.
   {"instance_id":"app-01","message":"Welcome to BARQ Systems","service":"barq-api","version":"2.0.0"}
 - Related commit: ae68dd8f5fa1b5b3c531ac7fe6b682b939998c2a
 - Remaining uncertainty: The healthcheck path and instance ID issues still remain, but basic routing to both apps should now work without 502s.
+
+## Entry 5 / 2026-09-13 / 07:50 UTC
+- Symptom: Containers might report as unhealthy or healthcheck logs show HTTP 404 errors.
+- Hypothesis: The healthcheck in docker-compose is querying an endpoint that doesn't exist in the application.
+- Command or test: grep "healthz" docker-compose.yml
+- Actual output: test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"]
+- Failed attempt and what changed your thinking: none
+- Root cause: Typo in the docker-compose.yml healthcheck path (/healthz instead of /health).
+- Fix: Changed the healthcheck path in docker-compose.yml from /healthz to /health.
+- Retest evidence:
+  docker ps --format "{{.Names}}: {{.Status}}" | grep app
+  app-01: Up 15 seconds (healthy)
+  app-02: Up 15 seconds (healthy)
+- Related commit: pending
+- Remaining uncertainty: Duplicate instance_id issue still needs to be resolved.
