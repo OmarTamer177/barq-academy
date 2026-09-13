@@ -155,8 +155,7 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence:
   docker ps --format "{{.Names}}: {{.Ports}}" | grep -E "postgres|redis"
   postgres: 5432/tcp
-  
-edis: 6379/tcp
+  redis: 6379/tcp
   (No host IP bindings like 127.0.0.1 are shown anymore)
-- Related commit: pending
+- Related commit: 42064a3c173647dbaf9c8a5035b948bbbb2d5b21
 - Remaining uncertainty: none
