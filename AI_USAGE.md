@@ -24,4 +24,10 @@ Write None if no AI was used. Otherwise record each use:
 - How you independently verified it: Executed both python3 validate.py and python3 failure_test.py locally against the running docker containers and confirmed they exit 0 on success and correctly simulate resilience behavior.
 - Related commit: 6fb857b3b14d02e8d175195d9e5799dd1ef54e8b
 
+- Tool/model: Gemini 3.1 pro
+- Purpose: review and verify database backup and restore
+- Files or decisions affected: backup.sh, restore.sh
+- What you changed or rejected: I wrote the initial drafts for the bash scripts and had the AI verify the pg_dump and psql syntax. The AI suggested adding the --clean and --if-exists flags for safer restoration, which I reviewed and accepted.
+- How you independently verified it: Executed both scripts locally against the running postgres container and verified the SQL dump file was generated correctly and successfully restored without errors.
+- Related commit: pending
 You may use AI and external resources. You must understand and demonstrate the work.
