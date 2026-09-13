@@ -21,6 +21,8 @@ jobs:
         echo "REDIS_URL=redis://redis:6379/0" >> config/app.env
 
     - name: Start Docker Compose Stack
+      env:
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: docker compose up -d --build
 
     - name: Wait for Services to Initialize

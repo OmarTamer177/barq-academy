@@ -47,7 +47,7 @@ edis-data volume.
 ### 5. Secrets
 - Risk and evidence: The `config/app.env` file containing real PostgreSQL and Redis passwords was tracked in the Git repository.
 - Impact: Anyone with read access to the repository could extract production credentials, leading to full data compromise.
-- Implemented fix / commit: Removed the file from Git tracking (`git rm --cached`), added it to `.gitignore`, and provided a sanitized `.env.example`.
+- Implemented fix / commit: Removed the file from Git tracking (`git rm --cached`), added it to `.gitignore`, and provided a sanitized `.env.example`. and scrubbed the hardcoded POSTGRES_PASSWORD directly from \docker-compose.yml\, forcing it to read from the secure environment instead.
 - Production follow-up: All leaked passwords must be rotated immediately. In production, migrate to a dedicated secret manager (e.g., AWS Secrets Manager, HashiCorp Vault) rather than env files.
 - How to verify: Run `git ls-files | grep app.env` to ensure it returns empty, and inspect `.gitignore`.
 
